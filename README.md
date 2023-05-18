@@ -69,7 +69,10 @@ Output:
 ```
 {'detect_objects': [{'name': 'cat', 'confidence': 0.926225245}, {'name': 'dog', 'confidence': 0.9109069705}], 'detect_objects_names': 'cat, dog'}
 ```
-
+###to run video live stream:
+```
+http://localhost:8000/video_feed
+```
 ### Example 2: Object Detection to Image    
 The following code demonstrates how to perform object detection and receive the results in image format.
 ```python
