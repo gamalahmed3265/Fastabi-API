@@ -4,16 +4,19 @@ import pandas as pd
 from PIL import Image
 from loguru import logger
 import sys
-
-from fastapi import FastAPI, File, status
+from fastapi import Request, Response,FastAPI, File, status,Header
+from pathlib import Path
 from fastapi.responses import RedirectResponse
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException
+from fastapi.templating import Jinja2Templates
+from fastapi import WebSocket
+import asyncio
 
 from io import BytesIO
 
-from app import get_image_from_bytes
+from app import gen_frames, get_image_from_bytes
 from app import detect_sample_model
 from app import add_bboxs_on_img
 from app import get_bytes_from_image
@@ -177,3 +180,57 @@ def img_object_detection_to_img(file: bytes = File(...)):
     # return image in bytes format
     return StreamingResponse(content=get_bytes_from_image(final_image), media_type="image/jpeg")
 
+
+
+
+namevideo="4K Relaxing Nature Sounds - Short Video Clips of Nature.mp4"
+url=f"/tests/{namevideo}"
+video_path = Path(url)
+CHUNK_SIZE = 1024*1024
+
+templates = Jinja2Templates(directory="templates")
+
+
+
+@app.get("/")
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+
+@app.get('/video_feed')
+def video_feed():
+    return StreamingResponse(gen_frames(), media_type='multipart/x-mixed-replace; boundary=frame')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# @app.get("/stream")
+# async def read_root(request: Request):
+#     return templates.TemplateResponse("index.html", context={"request": request})
+
+
+# @app.get("/video")
+# async def video_endpoint(range: str = Header(None)):
+#     start, end = range.replace("bytes=", "").split("-")
+#     start = int(start)
+#     end = int(end) if end else start + CHUNK_SIZE
+#     with open(video_path, "rb") as video:
+#         video.seek(start)
+#         data = video.read(end - start)
+#         filesize = str(video_path.stat().st_size)
+#         headers = {
+#             'Content-Range': f'bytes {str(start)}-{str(end)}/{filesize}',
+#             'Accept-Ranges': 'bytes'
+#         }
+#         return Response(data, status_code=206, headers=headers, media_type="video/mp4")

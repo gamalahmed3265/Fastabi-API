@@ -2,6 +2,7 @@ from PIL import Image
 import io
 import pandas as pd
 import numpy as np
+import cv2
 
 from typing import Optional
 
@@ -122,9 +123,8 @@ def add_bboxs_on_img(image: Image, predict: pd.DataFrame()) -> Image:
         # add the bounding box and text on the image
         annotator.box_label(bbox, text, color=colors(row['class'], True))
     # convert the annotated image to PIL image
-    return Image.fromarray(annotator.result())
-
-
+    return annotator.result()
+#Image.fromarray()
 ################################# Models #####################################
 
 
@@ -148,3 +148,28 @@ def detect_sample_model(input_image: Image) -> pd.DataFrame:
         conf=0.5,
     )
     return predict
+
+
+
+
+
+
+
+
+
+
+def gen_frames():
+    camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    while True:
+        success, frame = camera.read()
+        if not success:
+            break
+        predict = detect_sample_model(frame)
+
+        frame=add_bboxs_on_img(frame,predict)
+        
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+        yield (b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        
